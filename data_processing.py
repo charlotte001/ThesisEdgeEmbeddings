@@ -1,6 +1,7 @@
 # Importing modules
 import pandas as pd
 import random
+from sklearn.model_selection import train_test_split
 
 print("Modules loaded, starting with datasets..")
 
@@ -17,16 +18,18 @@ def negative_edge(dataset, edge_label, limited=True, include_edge_label=True):
     
     # Setting variables and dicts used in the function
     negative_edge_dict = {}
+    dataset = dataset.sample(frac=0.5)
     dataset = dataset.reset_index(drop=True)
+    dataset.loc[:, "value"] = True
     data_len = len(dataset) - 1
-    
+
     # Snippet to limit generation of edges for testing purposes
     if limited == False:
         range_limit = data_len
     else:
         range_limit = 20
         
-    print("Start negative edge generation with label = " + str(include_edge_label))
+    print("Start negative edge generation with edge label information = " + str(include_edge_label))
     
     # Generating negative edges by selecting from the original dataset using random indexes 
     for i in range(0, range_limit):
@@ -37,6 +40,7 @@ def negative_edge(dataset, edge_label, limited=True, include_edge_label=True):
         negative_edge_dict[i + data_len]= {'startnode': dataset.iat[startindex, 0],
                                 edge_label: dataset.iat[timeindex, 1],
                                 'endnode': dataset.iat[endindex, 2],
+                                'value': False
                                 }
             
     print("Edge generation is completed, now transforming and appending..")
@@ -46,35 +50,43 @@ def negative_edge(dataset, edge_label, limited=True, include_edge_label=True):
 
     print("Nodes created: " + str(negative_edge_df['startnode'].nunique()) + ", edges created: " + str(negative_edge_df['startnode'].count()))
     dataset = dataset.append(negative_edge_df)
+
+    print(dataset.info())
         
     # If-statement to determine output format (include/not-include edge label)
     if include_edge_label == True:
-        return(dataset.loc[:, ["startnode", edge_label, "endnode"]])
+        return(dataset.loc[:, ["startnode", edge_label, "endnode", "value"]])
     else:
-        return(dataset.loc[:, ["startnode","endnode"]])
+        return(dataset.loc[:, ["startnode","endnode", "value"]])
 
     print("Negative edge creation procedure completed for this iteration.")
 
-def create_test_split(dataset, dataset_name, labeled=True):
+def create_test_split(dataset, dataset_name, include_edge_label=True, test_size=0.3):
     
-    """ Function that creates a 30/70 test/training split """
+    """ Function that creates a test/training split """
     """ Function takes dataset_name to name the .txt files """
-    """ Includes labeled in the filename if labeled=True"""
-    
-    # Create test/training split using a 30/70 fraction
-    dataset_test = dataset.sample(frac=0.3)
+    """ Includes 'edge' in the filename if include_edge_label=True"""
 
-    # Using the index of the selection of the training set to drop it from original dataset 
-    dataset_training = dataset.drop(dataset_test.index)
+    # Split dataset into different variables based on input
+    X = dataset.drop(labels="value", axis=1)
+    y = dataset.loc[:, "value"]
 
-    if labeled == True:
+    # Generate training split
+    X_training, X_test, y_training, y_test = train_test_split(X, y, test_size=test_size, random_state=21, stratify=y)
+
+    if include_edge_label == True:
         # Output the training and test set to txt file with edge labels
-        dataset_training.to_csv("Datasets/"+ dataset_name +"/"+ dataset_name +"-training-labeled.txt", index=False)
-        dataset_test.to_csv("Datasets/"+ dataset_name +"/"+ dataset_name +"-test-labeled.txt", index=False)
+        X_training.to_csv("Datasets/"+ dataset_name +"/edge_x_training.txt", index=False, header=False)
+        X_test.to_csv("Datasets/"+ dataset_name +"/edge_x_test.txt", index=False, header=False)
+        y_training.to_csv("Datasets/"+ dataset_name + "/edge_y_training.txt", index=False, header=False)
+        y_test.to_csv("Datasets/"+ dataset_name +"/edge_y_test.txt", index=False, header=False)
+
     else:
         # Output the training and test set to txt file without edge labels
-        dataset_training.to_csv("Datasets/"+ dataset_name +"/"+ dataset_name +"-training-unlabeled.txt", index=False)
-        dataset_test.to_csv("Datasets/"+ dataset_name +"/"+ dataset_name +"-test-unlabeled.txt", index=False)
+        X_training.to_csv("Datasets/"+ dataset_name +"/noedge_x_training.txt", index=False, header=False)
+        X_test.to_csv("Datasets/"+ dataset_name +"/noedge_x_test.txt", index=False, header=False)
+        y_training.to_csv("Datasets/"+ dataset_name +"/noedge_y_training.txt", index=False, header=False)
+        y_test.to_csv("Datasets/"+ dataset_name +"/noedge_y_test.txt", index=False, header=False)
 
 # ------------------------------------------
 # HepPh dataset
@@ -96,8 +108,8 @@ hepph_labeled = negative_edge(hepph_full, 'timestamp', limited=False, include_ed
 hepph_unlabeled = negative_edge(hepph_full, 'timestamp', limited=False, include_edge_label=False)
 
 # Generate test/training split and save as .txt
-create_test_split(hepph_labeled, 'Cit-HepPh', labeled=True)
-create_test_split(hepph_unlabeled, 'Cit-HepPh', labeled=False)
+create_test_split(hepph_labeled, 'Cit-HepPh', include_edge_label=True)
+create_test_split(hepph_unlabeled, 'Cit-HepPh', include_edge_label=False)
 
 print("--> HepPH is ready..")
 
@@ -122,8 +134,8 @@ bitcoin_rating_labeled = negative_edge(bitcoin_rating, 'rating', limited=False, 
 bitcoin_rating_unlabeled = negative_edge(bitcoin_rating, 'rating', limited=False, include_edge_label=False)
 
 # Generate test/training split and save as .txt
-create_test_split(bitcoin_rating_labeled, 'BitcoinSign', labeled=True)
-create_test_split(bitcoin_rating_labeled, 'BitcoinSign', labeled=False)
+create_test_split(bitcoin_rating_labeled, 'BitcoinSign', include_edge_label=True)
+create_test_split(bitcoin_rating_labeled, 'BitcoinSign', include_edge_label=False)
 
 print("Bitcoin is ready..")
 
