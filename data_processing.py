@@ -61,7 +61,7 @@ def negative_edge(dataset, edge_label, limited=True, include_edge_label=True):
 
     print("Negative edge creation procedure completed for this iteration.")
 
-def create_test_split(dataset, dataset_name, include_edge_label=True, test_size=0.3):
+def create_test_split(dataset, dataset_name, include_edge_label=True, test_size=0.25, validation_size=0.25):
     
     """ Function that creates a test/training split """
     """ Function takes dataset_name to name the .txt files """
