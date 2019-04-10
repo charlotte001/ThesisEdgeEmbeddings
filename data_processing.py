@@ -1,7 +1,8 @@
 # Importing modules
 import pandas as pd
+import numpy as np
 import random
-from sklearn.model_selection import train_test_split
+import os
 
 print("Modules loaded, starting with datasets..")
 
@@ -9,84 +10,39 @@ print("Modules loaded, starting with datasets..")
 # Create functions for processing
 #-------------------------------------------
 
-def negative_edge(dataset, edge_label, limited=True, include_edge_label=True):
-    
-    """ Function to generate negative or fake edges """
-    """ The function accepts a column name for the edge label"""
-    """ By setting limited to False, the function is run on the length of the entire dataset """
-    """ By setting include_edge_label to False, no edge label is included in the final output """
-    
-    # Setting variables and dicts used in the function
-    negative_edge_dict = {}
-    dataset = dataset.sample(frac=0.5)
-    dataset = dataset.reset_index(drop=True)
-    dataset.loc[:, "value"] = True
-    data_len = len(dataset) - 1
+def data_split(dataset):
+    split_equal = dataset.sample(frac=0.5)
+    training = dataset.drop(split_equal.index, axis=0)
+    valid = split_equal.sample(frac=0.5)
+    test = split_equal.drop(valid.index, axis=0)
+    return training, valid, test
 
-    # Snippet to limit generation of edges for testing purposes
-    if limited == False:
-        range_limit = data_len
-    else:
-        range_limit = 20
-        
-    print("Start negative edge generation with edge label information = " + str(include_edge_label))
-    
-    # Generating negative edges by selecting from the original dataset using random indexes 
-    for i in range(0, range_limit):
-        startindex = random.randint(0, data_len)
-        endindex = random.randint(0, data_len)
-        timeindex = random.randint(0, data_len)
-        
-        negative_edge_dict[i + data_len]= {'startnode': dataset.iat[startindex, 0],
-                                edge_label: dataset.iat[timeindex, 1],
-                                'endnode': dataset.iat[endindex, 2],
-                                'value': False
-                                }
-            
-    print("Edge generation is completed, now transforming and appending..")
-    
-    # Transforming dictionary into dataframe and appending it to original dataset
-    negative_edge_df = pd.DataFrame.from_dict(negative_edge_dict, orient='index')
+def save_dataset(dataset, dataset_name, data_type, value):
+    directory = "Datasets/" + dataset_name + "/" + value + "/"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    dataset.to_csv(directory + data_type + ".txt", index=False, header=False, sep="\t")
 
-    print("Nodes created: " + str(negative_edge_df['startnode'].nunique()) + ", edges created: " + str(negative_edge_df['startnode'].count()))
-    dataset = dataset.append(negative_edge_df)
+def save_data(dataset, dataset_name, value):
+    training, validation, test = data_split(dataset)
+    save_dataset(training, dataset_name, 'train', value)
+    save_dataset(validation, dataset_name, 'valid', value)
+    save_dataset(test, dataset_name, 'test', value)
 
-    print(dataset.info())
-        
-    # If-statement to determine output format (include/not-include edge label)
-    if include_edge_label == True:
-        return(dataset.loc[:, ["startnode", edge_label, "endnode", "value"]])
-    else:
-        return(dataset.loc[:, ["startnode","endnode", "value"]])
+def rand_ent_except(entity, column, dataset):
+    rand_index = random.randint(0, len(dataset) - 1)
+    while(dataset.iat[rand_index, column] == entity):
+        rand_index = random.randint(0, len(dataset) - 1)
+    return dataset.iat[rand_index, column]
 
-    print("Negative edge creation procedure completed for this iteration.")
-
-def create_test_split(dataset, dataset_name, include_edge_label=True, test_size=0.25, validation_size=0.25):
-    
-    """ Function that creates a test/training split """
-    """ Function takes dataset_name to name the .txt files """
-    """ Includes 'edge' in the filename if include_edge_label=True"""
-
-    # Split dataset into different variables based on input
-    X = dataset.drop(labels="value", axis=1)
-    y = dataset.loc[:, "value"]
-
-    # Generate training split
-    X_training, X_test, y_training, y_test = train_test_split(X, y, test_size=test_size, random_state=21, stratify=y)
-
-    if include_edge_label == True:
-        # Output the training and test set to txt file with edge labels
-        X_training.to_csv("Datasets/"+ dataset_name +"/edge_x_training.txt", index=False, header=False)
-        X_test.to_csv("Datasets/"+ dataset_name +"/edge_x_test.txt", index=False, header=False)
-        y_training.to_csv("Datasets/"+ dataset_name + "/edge_y_training.txt", index=False, header=False)
-        y_test.to_csv("Datasets/"+ dataset_name +"/edge_y_test.txt", index=False, header=False)
-
-    else:
-        # Output the training and test set to txt file without edge labels
-        X_training.to_csv("Datasets/"+ dataset_name +"/noedge_x_training.txt", index=False, header=False)
-        X_test.to_csv("Datasets/"+ dataset_name +"/noedge_x_test.txt", index=False, header=False)
-        y_training.to_csv("Datasets/"+ dataset_name +"/noedge_y_training.txt", index=False, header=False)
-        y_test.to_csv("Datasets/"+ dataset_name +"/noedge_y_test.txt", index=False, header=False)
+def generate_neg(dataset, neg_ratio):
+    neg_batch = dataset
+    for i in range(len(neg_batch)):
+        if random.random() < 0.5:
+            neg_batch.iat[i, 0] = rand_ent_except(neg_batch.iat[i, 0], 0, neg_batch) #flipping head
+        else:
+            neg_batch.iat[i, 2] = rand_ent_except(neg_batch.iat[i, 2], 2, neg_batch) #flipping tail
+    return neg_batch
 
 # ------------------------------------------
 # HepPh dataset
@@ -104,12 +60,11 @@ hepph_ordering = ["startnode","timestamp","endnode"]
 hepph_full = hepph_full.loc[:, hepph_ordering]
 
 # Generate negative edges
-hepph_labeled = negative_edge(hepph_full, 'timestamp', limited=False, include_edge_label=True)
-hepph_unlabeled = negative_edge(hepph_full, 'timestamp', limited=False, include_edge_label=False)
+hepph_neg = generate_neg(dataset=hepph_full, neg_ratio=0.5)
 
 # Generate test/training split and save as .txt
-create_test_split(hepph_labeled, 'Cit-HepPh', include_edge_label=True)
-create_test_split(hepph_unlabeled, 'Cit-HepPh', include_edge_label=False)
+save_data(hepph_full, 'Cit-HepPh', value='Positive')
+save_data(hepph_neg, 'Cit-HepPh', value='Negative')
 
 print("--> HepPH is ready..")
 
@@ -130,12 +85,11 @@ bitcoin_rating_ordering = ["startnode", "rating", "endnode"]
 bitcoin_rating = bitcoin_full.loc[:, bitcoin_rating_ordering]
 
 # Generate negative edges
-bitcoin_rating_labeled = negative_edge(bitcoin_rating, 'rating', limited=False, include_edge_label=True)
-bitcoin_rating_unlabeled = negative_edge(bitcoin_rating, 'rating', limited=False, include_edge_label=False)
+bitcoin_rating_neg = generate_neg(dataset=bitcoin_rating, neg_ratio=0.5)
 
 # Generate test/training split and save as .txt
-create_test_split(bitcoin_rating_labeled, 'BitcoinSign', include_edge_label=True)
-create_test_split(bitcoin_rating_labeled, 'BitcoinSign', include_edge_label=False)
+save_data(bitcoin_rating, 'BitcoinSign', value="Positive")
+save_data(bitcoin_rating_neg, 'BitcoinSign', value="Negative")
 
 print("Bitcoin is ready..")
 
@@ -143,10 +97,42 @@ print("Bitcoin is ready..")
 # FB15K-237 dataset
 # ------------------------------------------
 
-# TO DO
+# load in dataset from datasets folder
+FB15k_train = pd.read_csv("Datasets/FB15k-237/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"])
+FB15k_valid = pd.read_csv("Datasets/FB15k-237/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"])
+FB15k_test = pd.read_csv("Datasets/FB15k-237/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"])
+
+# generate negative edges
+FB15k_train_neg = generate_neg(dataset=FB15k_train, neg_ratio=0.5)
+FB15k_valid_neg = generate_neg(dataset=FB15k_valid, neg_ratio=0.5)
+FB15k_test_neg = generate_neg(dataset=FB15k_test, neg_ratio=0.5)
+
+# save datasets
+save_dataset(FB15k_train, 'FB15K-237', data_type="train", value="Positive")
+save_dataset(FB15k_valid, 'FB15K-237', data_type="valid", value="Positive")
+save_dataset(FB15k_test, 'FB15K-237', data_type="test", value="Positive")
+save_dataset(FB15k_train_neg, 'FB15K-237', data_type="train", value="Negative")
+save_dataset(FB15k_valid_neg, 'FB15K-237', data_type="test", value="Negative")
+save_dataset(FB15k_test_neg, 'FB15K-237', data_type="valid", value="Negative")
 
 # ------------------------------------------
 # WN18RR dataset
 # ------------------------------------------
 
-# TO DO
+# load in dataset from datasets folder
+WN18RR_train = pd.read_csv("Datasets/WN18RR/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"])
+WN18RR_valid = pd.read_csv("Datasets/WN18RR/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"])
+WN18RR_test = pd.read_csv("Datasets/WN18RR/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"])
+
+# generate negative edges
+WN18RR_train_neg = generate_neg(dataset=WN18RR_train, neg_ratio=0.5)
+WN18RR_valid_neg = generate_neg(dataset=WN18RR_valid, neg_ratio=0.5)
+WN18RR_test_neg = generate_neg(dataset=WN18RR_test, neg_ratio=0.5)
+
+# save datasets
+save_dataset(WN18RR_train, 'WN18RR', data_type="train", value="Positive")
+save_dataset(WN18RR_valid, 'WN18RR', data_type="valid", value="Positive")
+save_dataset(WN18RR_test, 'WN18RR', data_type="test", value="Positive")
+save_dataset(WN18RR_train_neg, 'WN18RR', data_type="train", value="Negative")
+save_dataset(WN18RR_valid_neg, 'WN18RR', data_type="test", value="Negative")
+save_dataset(WN18RR_test_neg, 'WN18RR', data_type="valid", value="Negative")
