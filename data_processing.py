@@ -98,9 +98,9 @@ print("Bitcoin is ready..")
 # ------------------------------------------
 
 # load in dataset from datasets folder
-FB15k_train = pd.read_csv("Datasets/FB15k-237/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"])
-FB15k_valid = pd.read_csv("Datasets/FB15k-237/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"])
-FB15k_test = pd.read_csv("Datasets/FB15k-237/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"])
+FB15k_train = pd.read_csv("Datasets/FB15k-237/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+FB15k_valid = pd.read_csv("Datasets/FB15k-237/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+FB15k_test = pd.read_csv("Datasets/FB15k-237/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
 
 # generate negative edges
 FB15k_train_neg = generate_neg(dataset=FB15k_train, neg_ratio=0.5)
@@ -120,9 +120,9 @@ save_dataset(FB15k_test_neg, 'FB15K-237', data_type="valid", value="Negative")
 # ------------------------------------------
 
 # load in dataset from datasets folder
-WN18RR_train = pd.read_csv("Datasets/WN18RR/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"])
-WN18RR_valid = pd.read_csv("Datasets/WN18RR/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"])
-WN18RR_test = pd.read_csv("Datasets/WN18RR/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"])
+WN18RR_train = pd.read_csv("Datasets/WN18RR/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+WN18RR_valid = pd.read_csv("Datasets/WN18RR/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+WN18RR_test = pd.read_csv("Datasets/WN18RR/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
 
 # generate negative edges
 WN18RR_train_neg = generate_neg(dataset=WN18RR_train, neg_ratio=0.5)
