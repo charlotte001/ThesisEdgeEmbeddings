@@ -35,10 +35,10 @@ def rand_ent_except(entity, column, dataset):
         rand_index = random.randint(0, len(dataset) - 1)
     return dataset.iat[rand_index, column]
 
-def generate_neg(dataset, neg_ratio):
-    neg_batch = dataset
-    for i in range(len(neg_batch)):
-        if random.random() < 0.5:
+def generate_neg(dataset):
+    neg_batch = dataset.copy()
+    for i in range(0, len(neg_batch.index)):
+        if random.randint(0, 1) < 0.5:
             neg_batch.iat[i, 0] = rand_ent_except(neg_batch.iat[i, 0], 0, neg_batch) #flipping head
         else:
             neg_batch.iat[i, 2] = rand_ent_except(neg_batch.iat[i, 2], 2, neg_batch) #flipping tail
@@ -60,7 +60,8 @@ hepph_ordering = ["startnode","timestamp","endnode"]
 hepph_full = hepph_full.loc[:, hepph_ordering]
 
 # Generate negative edges
-hepph_neg = generate_neg(dataset=hepph_full, neg_ratio=0.5)
+hepph_neg = generate_neg(dataset=hepph_full)
+
 
 # Generate test/training split and save as .txt
 save_data(hepph_full, 'Cit-HepPh', value='Positive')
@@ -85,7 +86,7 @@ bitcoin_rating_ordering = ["startnode", "rating", "endnode"]
 bitcoin_rating = bitcoin_full.loc[:, bitcoin_rating_ordering]
 
 # Generate negative edges
-bitcoin_rating_neg = generate_neg(dataset=bitcoin_rating, neg_ratio=0.5)
+bitcoin_rating_neg = generate_neg(dataset=bitcoin_rating)
 
 # Generate test/training split and save as .txt
 save_data(bitcoin_rating, 'BitcoinSign', value="Positive")
@@ -103,17 +104,17 @@ FB15k_valid = pd.read_csv("Datasets/FB15k-237/Original/valid.txt", index_col=Fal
 FB15k_test = pd.read_csv("Datasets/FB15k-237/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
 
 # generate negative edges
-FB15k_train_neg = generate_neg(dataset=FB15k_train, neg_ratio=0.5)
-FB15k_valid_neg = generate_neg(dataset=FB15k_valid, neg_ratio=0.5)
-FB15k_test_neg = generate_neg(dataset=FB15k_test, neg_ratio=0.5)
+FB15k_train_neg = generate_neg(dataset=FB15k_train)
+FB15k_valid_neg = generate_neg(dataset=FB15k_valid)
+FB15k_test_neg = generate_neg(dataset=FB15k_test)
 
 # save datasets
 save_dataset(FB15k_train, 'FB15K-237', data_type="train", value="Positive")
 save_dataset(FB15k_valid, 'FB15K-237', data_type="valid", value="Positive")
 save_dataset(FB15k_test, 'FB15K-237', data_type="test", value="Positive")
 save_dataset(FB15k_train_neg, 'FB15K-237', data_type="train", value="Negative")
-save_dataset(FB15k_valid_neg, 'FB15K-237', data_type="test", value="Negative")
-save_dataset(FB15k_test_neg, 'FB15K-237', data_type="valid", value="Negative")
+save_dataset(FB15k_valid_neg, 'FB15K-237', data_type="valid", value="Negative")
+save_dataset(FB15k_test_neg, 'FB15K-237', data_type="test", value="Negative")
 
 # ------------------------------------------
 # WN18RR dataset
@@ -125,14 +126,14 @@ WN18RR_valid = pd.read_csv("Datasets/WN18RR/Original/valid.txt", index_col=False
 WN18RR_test = pd.read_csv("Datasets/WN18RR/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
 
 # generate negative edges
-WN18RR_train_neg = generate_neg(dataset=WN18RR_train, neg_ratio=0.5)
-WN18RR_valid_neg = generate_neg(dataset=WN18RR_valid, neg_ratio=0.5)
-WN18RR_test_neg = generate_neg(dataset=WN18RR_test, neg_ratio=0.5)
+WN18RR_train_neg = generate_neg(dataset=WN18RR_train)
+WN18RR_valid_neg = generate_neg(dataset= WN18RR_valid)
+WN18RR_test_neg = generate_neg(dataset=WN18RR_test)
 
 # save datasets
 save_dataset(WN18RR_train, 'WN18RR', data_type="train", value="Positive")
 save_dataset(WN18RR_valid, 'WN18RR', data_type="valid", value="Positive")
 save_dataset(WN18RR_test, 'WN18RR', data_type="test", value="Positive")
 save_dataset(WN18RR_train_neg, 'WN18RR', data_type="train", value="Negative")
-save_dataset(WN18RR_valid_neg, 'WN18RR', data_type="test", value="Negative")
-save_dataset(WN18RR_test_neg, 'WN18RR', data_type="valid", value="Negative")
+save_dataset(WN18RR_valid_neg, 'WN18RR', data_type="valid", value="Negative")
+save_dataset(WN18RR_test_neg, 'WN18RR', data_type="test", value="Negative")
