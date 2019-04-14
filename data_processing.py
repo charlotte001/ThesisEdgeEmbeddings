@@ -11,10 +11,10 @@ print("Modules loaded, starting with datasets..")
 #-------------------------------------------
 
 def data_split(dataset):
-    split_equal = dataset.sample(frac=0.5)
-    training = dataset.drop(split_equal.index, axis=0)
-    valid = split_equal.sample(frac=0.5)
-    test = split_equal.drop(valid.index, axis=0)
+    split_first = dataset.sample(frac=0.3)
+    training = dataset.drop(split_first.index, axis=0)
+    valid = split_first.sample(frac=0.5)
+    test = split_first.drop(valid.index, axis=0)
     return training, valid, test
 
 def save_dataset(dataset, dataset_name, data_type, value):
@@ -99,41 +99,41 @@ print("Bitcoin is ready..")
 # ------------------------------------------
 
 # load in dataset from datasets folder
-FB15k_train = pd.read_csv("Datasets/FB15k-237/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
-FB15k_valid = pd.read_csv("Datasets/FB15k-237/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
-FB15k_test = pd.read_csv("Datasets/FB15k-237/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+#FB15k_train = pd.read_csv("Datasets/FB15k-237/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+#FB15k_valid = pd.read_csv("Datasets/FB15k-237/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+#FB15k_test = pd.read_csv("Datasets/FB15k-237/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
 
 # generate negative edges
-FB15k_train_neg = generate_neg(dataset=FB15k_train)
-FB15k_valid_neg = generate_neg(dataset=FB15k_valid)
-FB15k_test_neg = generate_neg(dataset=FB15k_test)
+#FB15k_train_neg = generate_neg(dataset=FB15k_train)
+#FB15k_valid_neg = generate_neg(dataset=FB15k_valid)
+#FB15k_test_neg = generate_neg(dataset=FB15k_test)
 
 # save datasets
-save_dataset(FB15k_train, 'FB15K-237', data_type="train", value="Positive")
-save_dataset(FB15k_valid, 'FB15K-237', data_type="valid", value="Positive")
-save_dataset(FB15k_test, 'FB15K-237', data_type="test", value="Positive")
-save_dataset(FB15k_train_neg, 'FB15K-237', data_type="train", value="Negative")
-save_dataset(FB15k_valid_neg, 'FB15K-237', data_type="valid", value="Negative")
-save_dataset(FB15k_test_neg, 'FB15K-237', data_type="test", value="Negative")
+#save_dataset(FB15k_train, 'FB15K-237', data_type="train", value="Positive")
+#save_dataset(FB15k_valid, 'FB15K-237', data_type="valid", value="Positive")
+#save_dataset(FB15k_test, 'FB15K-237', data_type="test", value="Positive")
+#save_dataset(FB15k_train_neg, 'FB15K-237', data_type="train", value="Negative")
+#save_dataset(FB15k_valid_neg, 'FB15K-237', data_type="valid", value="Negative")
+#save_dataset(FB15k_test_neg, 'FB15K-237', data_type="test", value="Negative")
 
 # ------------------------------------------
 # WN18RR dataset
 # ------------------------------------------
 
 # load in dataset from datasets folder
-WN18RR_train = pd.read_csv("Datasets/WN18RR/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
-WN18RR_valid = pd.read_csv("Datasets/WN18RR/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
-WN18RR_test = pd.read_csv("Datasets/WN18RR/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+#WN18RR_train = pd.read_csv("Datasets/WN18RR/Original/train.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+#WN18RR_valid = pd.read_csv("Datasets/WN18RR/Original/valid.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
+#WN18RR_test = pd.read_csv("Datasets/WN18RR/Original/test.txt", index_col=False, names=["startnode", "relation", "endnode"], sep="\t")
 
 # generate negative edges
-WN18RR_train_neg = generate_neg(dataset=WN18RR_train)
-WN18RR_valid_neg = generate_neg(dataset= WN18RR_valid)
-WN18RR_test_neg = generate_neg(dataset=WN18RR_test)
+#WN18RR_train_neg = generate_neg(dataset=WN18RR_train)
+#WN18RR_valid_neg = generate_neg(dataset= WN18RR_valid)
+#WN18RR_test_neg = generate_neg(dataset=WN18RR_test)
 
 # save datasets
-save_dataset(WN18RR_train, 'WN18RR', data_type="train", value="Positive")
-save_dataset(WN18RR_valid, 'WN18RR', data_type="valid", value="Positive")
-save_dataset(WN18RR_test, 'WN18RR', data_type="test", value="Positive")
-save_dataset(WN18RR_train_neg, 'WN18RR', data_type="train", value="Negative")
-save_dataset(WN18RR_valid_neg, 'WN18RR', data_type="valid", value="Negative")
-save_dataset(WN18RR_test_neg, 'WN18RR', data_type="test", value="Negative")
+#save_dataset(WN18RR_train, 'WN18RR', data_type="train", value="Positive")
+#save_dataset(WN18RR_valid, 'WN18RR', data_type="valid", value="Positive")
+#save_dataset(WN18RR_test, 'WN18RR', data_type="test", value="Positive")
+#save_dataset(WN18RR_train_neg, 'WN18RR', data_type="train", value="Negative")
+#save_dataset(WN18RR_valid_neg, 'WN18RR', data_type="valid", value="Negative")
+#save_dataset(WN18RR_test_neg, 'WN18RR', data_type="test", value="Negative")
